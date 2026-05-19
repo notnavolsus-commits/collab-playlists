@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ room.name }}{% endblock %}
+{% block extra_css %}{% endblock %}
+{% block content %}
+    <script src="{% static 'rooms/js/room.js' %}"></script>
+    <h1>Комната {{ room.name }}</h1>
+
+    {% for track in tracks %}
+        <div class="track-container">
+            <h2 class="track-name">{{ track.track.artist }} - {{ track.track.title }}</h2>
+            {% if track.track.audio_file %}
+                <audio class="track-audio" controls src="{{ track.track.audio_file.url }}"></audio>
+            {% endif %}
+            <div class="track-votes">Количество голосов: <span id="votes-{{ track.id }}">{{ track.vote_count }}</span></div>
+            {% if user.is_authenticated %}
+                <button class="track-vote-button" data-track-id="{{ track.id }}">Голосовать за трек</button>
+            {% endif %}
+            <div class="info-user-track">Добавил: {{ track.added_by.username }}</div>
+        </div>
+    {% endfor %}
+    {% if user.is_authenticated %}
+        <h3>Добавить трек</h3>
+        <form method="post" action="{% url 'add_track' room.slug %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div>
+                <label>Введите название трека</label>
+                {{ form.title }}
+                <label>Введите название исполнителя</label>
+                {{ form.artist }}
+                <label>Выберите файл</label>
+                {{ form.audio_file }}
+                {% if form.errors %}
+                    <div class="errors">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <button type="submit">Добавить трек</button>
+        </form>
+    {% endif %}
+{% endblock %}

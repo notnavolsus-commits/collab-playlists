@@ -1,0 +1,121 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.logo a {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    transition: opacity 0.3s;
+}
+
+.logo a:hover {
+    opacity: 0.8;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.nav-links a {
+    color: antiquewhite;
+    padding: 0.1rem 0.5rem;
+    border-radius: 1px;
+    transition: all 0.3s;
+}
+
+.nav-links a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+footer {
+    background-color: #176153;
+    color: white;
+    text-align: center;
+    padding: 1.5rem;
+    margin-top: auto;
+}
+
+.room-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.room-name {
+
+}
+
+.room-ref {
+    color: #1b3975;
+    text-decoration: none;
+    font-weight: bolder;
+    transition: all 0.3s;
+    display: inline-block;
+}
+
+.room-ref:hover {
+    background-color: rgba(87, 82, 82, 0.1);
+    transform: translateY(-2px);
+}
+
+.track-container {
+    background: rgba(51, 51, 51, 0.63);
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.track-name, .info-user-track, .track-votes {
+    color: #c3bb87;
+}
+
+.track-name {
+    margin-left: 20px;
+}
+
+.track-audio {
+    margin-left: 10px;
+    border-radius: 10px;
+}
+
+.track-audio::-webkit-media-controls-panel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.info-user-track, .track-votes {
+    margin-left: 50px;
+}
+
+.profile-info {
+    background-color: #d2d9ed;
+    border-radius: 2px;
+}

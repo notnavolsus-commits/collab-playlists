@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+
+{% block content %}
+    {% for room in rooms %}
+        <div class="room-container">
+            <h2 class="room-name">{{ room.name }}</h2>
+            <a class="room-ref" href="{% url 'room_detail' room.slug %}">Перейти в комнату</a>
+        </div>
+    {% empty %}
+        <p>Пока не создано ещё ни одной комнаты</p>
+    {% endfor %}
+    {% if user.is_authenticated %}
+        <a href="{% url 'create_room' %}">Добавить новую комнату</a>
+    {% endif %}
+{% endblock %}

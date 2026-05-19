@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Мой профиль{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">
+        </div>
+            <h1>{{ user.get_full_name|default:user.username }}</h1>
+            <p>На сайте с {{ user.date_joined|date:"d.m.Y" }}</p>
+        </div>
+
+    <div class="profile-info">
+        <div class="info-row">
+            <div class="info-label">Имя пользователя:</div>
+            <div class="info-value">{{ user.username }}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Email:</div>
+            <div class="info-value">{{ user.email }}</div>
+        </div>
+        {% if user.first_name %}
+        <div class="info-row">
+            <div class="info-label">Имя:</div>
+            <div class="info-value">{{ user.first_name }}</div>
+        </div>
+        {% endif %}
+        {% if user.last_name %}
+        <div class="info-row">
+            <div class="info-label">Фамилия:</div>
+            <div class="info-value">{{ user.last_name }}</div>
+        </div>
+        {% endif %}
+        <div class="info-row">
+            <div class="info-label">Последний визит:</div>
+            <div class="info-value">{{ user.last_login|date:"d.m.Y H:i" }}</div>
+        </div>
+    </div>
+
+    <div class="stats">
+        <h3>Моя активность</h3>
+        <div>
+            <span class="stat-number">{{ user.votes.count }}</span>
+            <span>голосов</span>
+            <span class="stat-number">{{ user.created_rooms.count }}</span>
+            <span>комнат добавлено</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
