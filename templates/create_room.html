@@ -6,9 +6,9 @@
 
 {% block content %}
 <h2>Создать новую комнату</h2>
-    <form method="post">
+    <form class="form-container" method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Создать</button>
+        <button class="btn-add-room" type="submit">Создать</button>
     </form>
 {% endblock %}

@@ -102,6 +102,15 @@ footer {
     margin-left: 20px;
 }
 
+.track-vote-button {
+    display: inline-block;
+    font-weight: 600;
+    text-align: center;
+    padding: 0.75rem 1.5rem;
+    margin-left: 10px;
+    border-radius: 2px;
+}
+
 .track-audio {
     margin-left: 10px;
     border-radius: 10px;
@@ -119,3 +128,62 @@ footer {
     background-color: #d2d9ed;
     border-radius: 2px;
 }
+
+.auth-header {
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.form-container {
+    max-width: 450px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #1f2937;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #1f2937;
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn-register,
+.btn-add-track,
+.btn-add-room {
+    display: inline-block;
+    font-weight: 500;
+    text-align: center;
+    padding: 0.75rem 1.5rem;
+}
+

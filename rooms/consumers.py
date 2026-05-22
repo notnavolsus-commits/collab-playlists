@@ -3,6 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from .models import Room, RoomTrack, Vote
 from django.contrib.auth.models import User
+from django.db.models import Count
 
 class ConsumerInRoom(AsyncWebsocketConsumer):
     async def connect(self):
@@ -57,10 +58,14 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
             Vote.objects.create(user=user, room_track=room_track)
             action = 'voted'
         new_votes_count = Vote.objects.filter(room_track=room_track).count()
+        room = room_track.room
+        room_tracks = RoomTrack.objects.filter(room=room).annotate(vote_count=Count('votes')).order_by('-vote_count', 'created_at')
+        new_order = list(room_tracks.values_list('id', flat=True))
         return {
             'new_votes_count': new_votes_count,
             'action': action,
-            'room_track_id': room_track_id
+            'room_track_id': room_track_id,
+            'new_order': new_order,
         }
 
     async def send_vote_update(self, event):
@@ -68,4 +73,5 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
             'room_track_id': event['room_track_id'],
             'new_votes_count': event['new_votes_count'],
             'action': event['action'],
+            'new_order': event['new_order'],
         }))
