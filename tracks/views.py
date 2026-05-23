@@ -15,11 +15,15 @@ def add_track(request, room_slug):
             title = form.cleaned_data['title']
             artist = form.cleaned_data['artist']
             audio_file = form.cleaned_data['audio_file']
+            cover_image = form.cleaned_data['cover_image']
+            cover_url = form.cleaned_data['cover_url']
             track = Track.objects.create(
                 title=title,
                 artist=artist,
                 audio_file=audio_file,
                 added_by=request.user,
+                cover_image=cover_image,
+                cover_url=cover_url,
             )
             room_track = RoomTrack.objects.create(
                 room=room,

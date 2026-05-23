@@ -21,13 +21,11 @@ document.addEventListener('DOMContentLoaded', function() {
         let room_track_id = data['room_track_id'];
         let new_votes_count = data['new_votes_count'];
         let new_order = data['new_order'];
-        console.log('new order:', new_order);
         let vote_counter = document.querySelector(`#votes-${room_track_id}`);
         if (vote_counter) {
         vote_counter.innerText = `${new_votes_count}`;
         }
         let tracks = document.querySelector(`.tracks-container`);
-        console.log('tracks', tracks);
         new_order.forEach(id =>{
             let child = document.querySelector(`div.track-container[data-track-id="${id}"]`);
             tracks.appendChild(child);
@@ -40,6 +38,5 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', () => {
             const trackId = button.dataset.trackId
             socket.send(JSON.stringify({action: 'vote', room_track_id: trackId}));
-            console.log('Голос отправлен', trackId)
     });}
 });
