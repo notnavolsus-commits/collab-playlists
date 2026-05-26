@@ -18,10 +18,18 @@ def room_detail(request, room_slug):
         vote_count = Count('votes')
     )
     form = TrackForm()
+    tracks_count = tracks.count()
+    if tracks_count % 10 == 1 and tracks_count % 100 != 11:
+        count_word = 'трек'
+    elif 2 <= tracks_count % 10 <= 4 and (tracks_count % 100 < 10 or tracks_count % 100 >= 20):
+        count_word = 'трека'
+    else:
+        count_word = 'треков'
     context = {
         'room': room,
         'tracks': tracks,
         'form': form,
+        'tracks_count': str(tracks_count) + ' ' + count_word,
     }
     return render(request, 'room_detail.html', context)
 

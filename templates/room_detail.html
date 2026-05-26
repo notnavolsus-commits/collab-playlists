@@ -5,6 +5,7 @@
 {% block content %}
     <script src="{% static 'rooms/js/room.js' %}"></script>
     <h1>Комната {{ room.name }}</h1>
+    <p> В комнате {{ tracks_count }} </p>
 
     <div class="tracks-container">
         {% for track in tracks %}
