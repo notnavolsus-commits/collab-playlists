@@ -1,9 +1,14 @@
+import os
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.db.models import Count
 from django.utils.text import slugify
+from django.views.decorators.http import require_POST
+
 from .forms import RoomForm
-from .models import Room
+from .models import Room, RoomTrack
 from tracks.forms import TrackForm
 from random import randint
 from time import time
@@ -56,4 +61,45 @@ def create_room(request):
             return redirect('room_detail', room_slug=slug)
         return render(request, 'create_room.html', {'form': form})
 
-# Create your views here.
+def is_staff_or_creator(model):
+    def decorator(view):
+        def wrapper(request, **kwargs):
+            if model == 'room':
+                room = Room.objects.get(slug=kwargs['room_slug'])
+            elif model == 'track':
+                room_track = RoomTrack.objects.get(id=kwargs['track_id'])
+                room = room_track.room
+                kwargs.update({'track': room_track})
+            else:
+                raise ValueError('Другие модели не предусмотрены для декорирования is_staff_or_created_by')
+            if request.user.is_staff or room.created_by == request.user:
+                kwargs.update({'room': room})
+                return view(request, **kwargs)
+            else:
+                raise PermissionDenied
+        return wrapper
+    return decorator
+
+
+@require_POST
+@login_required
+@is_staff_or_creator('track')
+def delete_track(request, **kwargs):
+    room = kwargs.get('room')
+    room_track = kwargs.get('track')
+    track = room_track.track
+    room_track.delete()
+    if RoomTrack.objects.filter(track=track).count() == 0:
+        if track.audio_file and os.path.exists(track.audio_file.path):
+            os.remove(track.audio_file.path)
+        track.delete()
+    return JsonResponse({'track_id': track.id, 'success': True})
+
+
+@is_staff_or_creator('room')
+def delete_room(request):
+    pass
+
+
+
+

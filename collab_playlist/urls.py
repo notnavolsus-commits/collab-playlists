@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from rooms.views import *
-from tracks.views import *
+from tracks.views import add_track
 from django.conf import settings
 from django.conf.urls.static import static
 from accounts import views as users_views
@@ -31,7 +31,8 @@ urlpatterns = [
     path('login/', users_views.user_login, name='login'),
     path('logout/', users_views.user_logout, name='logout'),
     path('profile/', users_views.profile, name='profile'),
-    path('create_room', create_room, name='create_room')
+    path('create_room/', create_room, name='create_room'),
+    path('rooms/<slug:room_slug>/delete_track/<int:track_id>/', delete_track, name='delete_track'),
 ]
 
 if settings.DEBUG:

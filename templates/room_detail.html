@@ -5,29 +5,40 @@
 {% block content %}
     <script src="{% static 'rooms/js/room.js' %}"></script>
     <h1>Комната {{ room.name }}</h1>
-    <p> В комнате {{ tracks_count }} </p>
+    <p class="tracks-counter"> В комнате {{ tracks_count }} </p>
+    {% if user == room.created_by or user.is_staff %}
+        <button type="submit" class="delete-room-btn" data-room-btn="{{ room.id }}" data-room-slug="{{ room.slug }}">
+            Удалить комнату
+        </button>
+    {% endif %}
 
     <div class="tracks-container">
         {% for track in tracks %}
             <div class="track-container" data-track-id="{{ track.id }}">
                 {% if track.track.get_cover_image %}
-                    <img src="{{ track.track.get_cover_image }}" width="200" height="200" style="object-fit: cover; padding-left: 24px; padding-top: 12px;">
+                    <img src="{{ track.track.get_cover_image }}" width="200" height="200"
+                         style="object-fit: cover; padding-left: 24px; padding-top: 12px;">
                 {% endif %}
                 <h2 class="track-name">{{ track.track.artist }} - {{ track.track.title }}</h2>
                 {% if track.track.audio_file %}
                     <audio class="track-audio" controls src="{{ track.track.audio_file.url }}"></audio>
                 {% endif %}
-                <div class="track-votes">Количество голосов: <span id="votes-{{ track.id }}">{{ track.vote_count }}</span></div>
+                <div class="track-votes">Количество голосов: <span
+                        id="votes-{{ track.id }}">{{ track.vote_count }}</span></div>
                 {% if user.is_authenticated %}
                     <button class="track-vote-button" data-track-id="{{ track.id }}">Голосовать за трек</button>
                 {% endif %}
                 <div class="info-user-track">Добавил: {{ track.added_by.username }}</div>
+                {% if user == room.created_by or user.is_staff %}
+                    <button type="submit" class="delete-track-btn" data-track-id="{{ track.id }}">Удалить трек</button>
+                {% endif %}
             </div>
         {% endfor %}
     </div>
     {% if user.is_authenticated %}
         <h3 style="text-align: center">Добавить трек</h3>
-        <form method="post" action="{% url 'add_track' room.slug %}" enctype="multipart/form-data" class="form-track-container">
+        <form method="post" action="{% url 'add_track' room.slug %}" enctype="multipart/form-data"
+              class="form-track-container">
             {% csrf_token %}
             <div>
                 <label>Введите название трека</label>
