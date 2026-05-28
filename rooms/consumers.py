@@ -75,3 +75,9 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
             'action': event['action'],
             'new_order': event['new_order'],
         }))
+
+    async def delete_track(self, event):
+        await self.send(text_data=json.dumps({
+            'action': 'delete_track',
+            'track_id': event['track_id'],
+        }))

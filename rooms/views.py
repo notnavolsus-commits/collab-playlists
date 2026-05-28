@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.db.models import Count
 from django.utils.text import slugify
 from django.views.decorators.http import require_POST
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 from .forms import RoomForm
 from .models import Room, RoomTrack
@@ -93,12 +95,29 @@ def delete_track(request, **kwargs):
         if track.audio_file and os.path.exists(track.audio_file.path):
             os.remove(track.audio_file.path)
         track.delete()
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f'room_{room.slug}',
+        {
+            'type': 'delete_track',
+            'track_id': track.id,
+        }
+    )
     return JsonResponse({'track_id': track.id, 'success': True})
 
-
+@require_POST
+@login_required
 @is_staff_or_creator('room')
-def delete_room(request):
-    pass
+def delete_room(request, **kwargs):
+    room = kwargs.get('room')
+    for room_track in RoomTrack.objects.filter(room=room):
+        track = room_track.track
+        if RoomTrack.objects.filter(track=track).count() <= 1:
+            if track.audio_file and os.path.exists(track.audio_file.path):
+                os.remove(track.audio_file.path)
+            track.delete()
+    room.delete()
+    return redirect('rooms_list')
 
 
 

@@ -7,9 +7,12 @@
     <h1>Комната {{ room.name }}</h1>
     <p class="tracks-counter"> В комнате {{ tracks_count }} </p>
     {% if user == room.created_by or user.is_staff %}
-        <button type="submit" class="delete-room-btn" data-room-btn="{{ room.id }}" data-room-slug="{{ room.slug }}">
-            Удалить комнату
-        </button>
+        <form method="post" action="{% url 'delete_room' room.slug %}">
+            {% csrf_token %}
+                <button type="submit" class="delete-room-btn" data-room-btn="{{ room.id }}" data-room-slug="{{ room.slug }}">
+                    Удалить комнату
+                </button>
+        </form>
     {% endif %}
 
     <div class="tracks-container">

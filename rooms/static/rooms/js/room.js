@@ -18,18 +18,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
     socket.onmessage = function (event) {
         const data = JSON.parse(event.data);
-        let room_track_id = data['room_track_id'];
-        let new_votes_count = data['new_votes_count'];
-        let new_order = data['new_order'];
-        let vote_counter = document.querySelector(`#votes-${room_track_id}`);
-        if (vote_counter) {
-            vote_counter.innerText = `${new_votes_count}`;
+        if (data.action === 'voted' || data.action === 'unvoted') {
+            let room_track_id = data['room_track_id'];
+            let new_votes_count = data['new_votes_count'];
+            let new_order = data['new_order'];
+            let vote_counter = document.querySelector(`#votes-${room_track_id}`);
+            if (vote_counter) {
+                vote_counter.innerText = `${new_votes_count}`;
+            }
+            let tracks = document.querySelector(`.tracks-container`);
+            new_order.forEach(id => {
+                let child = document.querySelector(`div.track-container[data-track-id="${id}"]`);
+                tracks.appendChild(child);
+            });
+        } else if (data.action === 'delete_track') {
+            const trackId = data.track_id;
+            const trackElement = document.querySelector(`.track-container[data-track-id="${trackId}"]`);
+            if (trackElement) {
+                trackElement.remove();
+                const trackCounter = document.querySelector('.tracks-counter');
+                if (trackCounter) {
+                    let text = trackCounter.innerText;
+                    let match = text.match(/\d+/);
+                    if (match) {
+                        let currentCount = parseInt(match[0]);
+                        trackCounter.innerText = text.replace(currentCount, currentCount - 1);
+                    }
+                }
+            }
         }
-        let tracks = document.querySelector(`.tracks-container`);
-        new_order.forEach(id => {
-            let child = document.querySelector(`div.track-container[data-track-id="${id}"]`);
-            tracks.appendChild(child);
-        });
     };
 
     const buttons = document.querySelectorAll('button[data-track-id]');
@@ -66,7 +83,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(data => {
                     if (data.success) {
                         const track = document.querySelector(`div.track-container[data-track-id="${trackId}"]`);
-                        if (track) {track.remove();}
+                        if (track) {
+                            track.remove();
+                        }
                         const trackCounter = document.querySelector(`.tracks-counter`);
                         if (trackCounter) {
                             let text = trackCounter.innerText;
@@ -77,13 +96,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             }
                         }
-                    }
-                    else alert(data.error);
-            })
-            .catch(error => {
-                console.error('Ошибка: ', error);
-                alert('Не удалось удалить трек');
-            });
+                    } else alert(data.error);
+                })
+                .catch(error => {
+                    console.error('Ошибка: ', error);
+                    alert('Не удалось удалить трек');
+                });
         });
     }
 });
