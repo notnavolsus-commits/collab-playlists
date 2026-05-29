@@ -5,6 +5,7 @@ from .models import Room, RoomTrack, Vote
 from django.contrib.auth.models import User
 from django.db.models import Count
 
+
 class ConsumerInRoom(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_slug = self.scope['url_route']['kwargs']['room_slug']
@@ -33,12 +34,68 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
                 return
             toggle_dict = await self.toggle_vote(user_id, room_track_id)
             await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'send_vote_update',
-                **toggle_dict
-            }
-        )
+                self.room_group_name,
+                {
+                    'type': 'send_vote_update',
+                    **toggle_dict
+                }
+            )
+        elif data['action'] == 'start_broadcast':
+            room_track_id = data['track_id']
+            user = self.scope['user']
+            room = await self.get_room_by_room_track(room_track_id)
+            if await self.room_creator_validation(room, user):
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'start_broadcast',
+                        'action': 'start_broadcast',
+                        'track_id': room_track_id,
+                    }
+                )
+        elif data['action'] == 'sync_broadcast':
+            room_track_id = data['track_id']
+            user = self.scope['user']
+            room = await self.get_room_by_room_track(room_track_id)
+            if await self.room_creator_validation(room, user):
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'sync_broadcast',
+                        'action': 'sync_broadcast',
+                        'track_id': room_track_id,
+                        'current_time': data['current_time']
+                    }
+                )
+        elif data['action'] == 'stop_broadcast':
+            room_slug = data['room_slug']
+            room = await self.get_room_by_slug(room_slug)
+            if await self.room_creator_validation(room, self.scope['user']):
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'stop_broadcast',
+                        'action': 'stop_broadcast',
+                        'room_slug': room_slug
+                    }
+                )
+
+    @database_sync_to_async
+    def room_creator_validation(self, room, user):
+        if room.created_by == user:
+            return True
+        else:
+            return False
+
+    @database_sync_to_async
+    def get_room_by_room_track(self, track_id):
+        room_track = RoomTrack.objects.select_related('track', 'room').get(id=track_id)
+        room = room_track.room
+        return room
+
+    @database_sync_to_async
+    def get_room_by_slug(self, room_slug):
+        return Room.objects.get(slug=room_slug)
 
     @database_sync_to_async
     def toggle_vote(self, user_id, room_track_id):
@@ -59,7 +116,8 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
             action = 'voted'
         new_votes_count = Vote.objects.filter(room_track=room_track).count()
         room = room_track.room
-        room_tracks = RoomTrack.objects.filter(room=room).annotate(vote_count=Count('votes')).order_by('-vote_count', 'created_at')
+        room_tracks = RoomTrack.objects.filter(room=room).annotate(vote_count=Count('votes')).order_by('-vote_count',
+                                                                                                       'created_at')
         new_order = list(room_tracks.values_list('id', flat=True))
         return {
             'new_votes_count': new_votes_count,
@@ -80,4 +138,23 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'action': 'delete_track',
             'track_id': event['track_id'],
+        }))
+
+    async def start_broadcast(self, event):
+        await self.send(text_data=json.dumps({
+            'action': 'start_broadcast',
+            'track_id': event['track_id'],
+        }))
+
+    async def sync_broadcast(self, event):
+        await self.send(text_data=json.dumps({
+            'action': 'sync_broadcast',
+            'track_id': event['track_id'],
+            'current_time': event['current_time'],
+        }))
+
+    async def stop_broadcast(self, event):
+        await self.send(text_data=json.dumps({
+            'action': 'stop_broadcast',
+            'room': event['room_slug']
         }))

@@ -14,7 +14,7 @@ class TrackForm(forms.Form):
             return audio_file
         if not audio_file.name.endswith('.mp3'):
             raise forms.ValidationError("Файл должен иметь расширение mp3")
-        max_size = 10 * 1024 * 1024
+        max_size = 15 * 1024 * 1024
         if audio_file.size > max_size:
             raise forms.ValidationError(f"Файл должен быть не больше: {max_size / (1024 * 1024)} MB")
         return audio_file

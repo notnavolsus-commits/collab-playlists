@@ -3,16 +3,22 @@
 {% block title %}{{ room.name }}{% endblock %}
 {% block extra_css %}{% endblock %}
 {% block content %}
+    <script> window.isCreator = {% if user.is_authenticated and user == room.created_by %}true{% else %}false{% endif %};</script>
     <script src="{% static 'rooms/js/room.js' %}"></script>
     <h1>Комната {{ room.name }}</h1>
     <p class="tracks-counter"> В комнате {{ tracks_count }} </p>
+    <div class="broadcast-status" style="display: none">
+        Сейчас в эфире: <span id="broadcast-track-name"></span>
+    </div>
     {% if user == room.created_by or user.is_staff %}
         <form method="post" action="{% url 'delete_room' room.slug %}">
             {% csrf_token %}
-                <button type="submit" class="delete-room-btn" data-room-btn="{{ room.id }}" data-room-slug="{{ room.slug }}">
-                    Удалить комнату
-                </button>
+            <button type="submit" class="delete-room-btn" data-room-btn="{{ room.id }}"
+                    data-room-slug="{{ room.slug }}">
+                Удалить комнату
+            </button>
         </form>
+        <button type="submit" class="stop-broadcast-btn" style="display: none;">Остановить эфир</button>
     {% endif %}
 
     <div class="tracks-container">
@@ -24,7 +30,7 @@
                 {% endif %}
                 <h2 class="track-name">{{ track.track.artist }} - {{ track.track.title }}</h2>
                 {% if track.track.audio_file %}
-                    <audio class="track-audio" controls src="{{ track.track.audio_file.url }}"></audio>
+                    <audio class="track-audio" controls src="{{ track.track.audio_file.url }}" onerror="this.style.display='none'"></audio>
                 {% endif %}
                 <div class="track-votes">Количество голосов: <span
                         id="votes-{{ track.id }}">{{ track.vote_count }}</span></div>
@@ -34,6 +40,11 @@
                 <div class="info-user-track">Добавил: {{ track.added_by.username }}</div>
                 {% if user == room.created_by or user.is_staff %}
                     <button type="submit" class="delete-track-btn" data-track-id="{{ track.id }}">Удалить трек</button>
+                    {% if track.track.audio_file %}
+                        <button type="submit" class="start-broadcast-btn" data-track-id="{{ track.id }}">Запустить эфир
+                            с треком
+                        </button>
+                    {% endif %}
                 {% endif %}
             </div>
         {% endfor %}
