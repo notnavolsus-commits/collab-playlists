@@ -1,4 +1,5 @@
 import os
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
@@ -21,6 +22,12 @@ def rooms_list(request):
 
 def room_detail(request, room_slug):
     room = get_object_or_404(Room, slug=room_slug)
+    if room.is_private:
+        if not request.user.is_authenticated:
+            messages.warning(request, 'Для перехода в приватную комнату нужно быть зарегистрированным')
+            return redirect('login')
+        if not request.session.get(f'room_unlocked_{room.id}') and request.user != room.created_by:
+            return render(request, 'room_detail.html', {'room': room, 'need_password': True})
     tracks = room.tracks.annotate(
         vote_count = Count('votes')
     )
@@ -37,6 +44,7 @@ def room_detail(request, room_slug):
         'tracks': tracks,
         'form': form,
         'tracks_count': str(tracks_count) + ' ' + count_word,
+        'need_password': False,
     }
     return render(request, 'room_detail.html', context)
 
@@ -59,7 +67,12 @@ def create_room(request):
                 if not tries:
                     slug += str(time()).replace('.', '-')
                     break
-            room = Room.objects.create(name=name, created_by=request.user, slug=slug)
+            is_private = form.cleaned_data['is_private']
+            password = form.cleaned_data['password']
+            room = Room.objects.create(name=name, created_by=request.user, slug=slug, is_private=is_private)
+            if is_private:
+                room.set_password(password)
+            room.save()
             return redirect('room_detail', room_slug=slug)
         return render(request, 'create_room.html', {'form': form})
 
@@ -119,6 +132,13 @@ def delete_room(request, **kwargs):
     room.delete()
     return redirect('rooms_list')
 
-
-
-
+@login_required
+def unlock_room(request, room_slug):
+    if request.method == 'POST':
+        password = request.POST.get('password')
+        room = get_object_or_404(Room, slug=room_slug)
+        if room.check_password(password):
+            request.session[f'room_unlocked_{room.id}'] = True
+        else:
+            messages.error(request, 'Неверный пароль!')
+    return redirect('room_detail', room_slug=room_slug)

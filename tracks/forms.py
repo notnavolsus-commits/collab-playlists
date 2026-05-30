@@ -20,7 +20,8 @@ class TrackForm(forms.Form):
         return audio_file
 
     def clean(self):
-        cover_image, cover_url = self.cleaned_data['cover_image'], self.cleaned_data['cover_url']
+        cleaned_data = super().clean()
+        cover_image, cover_url = cleaned_data['cover_image'], cleaned_data['cover_url']
         if not cover_image and not cover_url:
             raise forms.ValidationError("Нужно указать URL или вставить файл")
         if cover_image:
@@ -50,5 +51,6 @@ class TrackForm(forms.Form):
 
             except Exception as e:
                 raise forms.ValidationError(f'Невалидное изображение: {str(e)}')
+        return cleaned_data
 
 

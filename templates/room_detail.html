@@ -3,79 +3,89 @@
 {% block title %}{{ room.name }}{% endblock %}
 {% block extra_css %}{% endblock %}
 {% block content %}
-    <script> window.isCreator = {% if user.is_authenticated and user == room.created_by %}true{% else %}false{% endif %};</script>
-    <script src="{% static 'rooms/js/room.js' %}"></script>
-    <h1>Комната {{ room.name }}</h1>
-    <p class="tracks-counter"> В комнате {{ tracks_count }} </p>
-    <div class="broadcast-status" style="display: none">
-        Сейчас в эфире: <span id="broadcast-track-name"></span>
-    </div>
-    {% if user == room.created_by or user.is_staff %}
-        <form method="post" action="{% url 'delete_room' room.slug %}">
+    {% if need_password %}
+        <form method="post" action="{% url 'unlock_room' room.slug %}">
             {% csrf_token %}
-            <button type="submit" class="delete-room-btn" data-room-btn="{{ room.id }}"
-                    data-room-slug="{{ room.slug }}">
-                Удалить комнату
-            </button>
+            <label>
+                <input type="password" name="password" placeholder="Пароль" required>
+            </label>
+            <button type="submit">Войти</button>
         </form>
-        <button type="submit" class="stop-broadcast-btn" style="display: none;">Остановить эфир</button>
-    {% endif %}
+    {% else %}
+        <script> window.isCreator = {% if user.is_authenticated and user == room.created_by %}true{% else %}false{% endif %};</script>
+        <script src="{% static 'rooms/js/room.js' %}"></script>
+        <h1>Комната {{ room.name }}</h1>
+        <p class="tracks-counter"> В комнате {{ tracks_count }} </p>
+        <div class="broadcast-status" style="display: none">
+            Сейчас в эфире: <span id="broadcast-track-name"></span>
+        </div>
+        {% if user == room.created_by or user.is_staff %}
+            <form method="post" action="{% url 'delete_room' room.slug %}">
+                {% csrf_token %}
+                <button type="submit" class="delete-room-btn" data-room-btn="{{ room.id }}"
+                        data-room-slug="{{ room.slug }}">
+                    Удалить комнату
+                </button>
+            </form>
+            <button type="submit" class="stop-broadcast-btn" style="display: none;">Остановить эфир</button>
+        {% endif %}
 
-    <div class="tracks-container">
-        {% for track in tracks %}
-            <div class="track-container" data-track-id="{{ track.id }}">
-                {% if track.track.get_cover_image %}
-                    <img src="{{ track.track.get_cover_image }}" width="200" height="200"
-                         style="object-fit: cover; padding-left: 24px; padding-top: 12px;">
-                {% endif %}
-                <h2 class="track-name">{{ track.track.artist }} - {{ track.track.title }}</h2>
-                {% if track.track.audio_file %}
-                    <audio class="track-audio" controls src="{{ track.track.audio_file.url }}" onerror="this.style.display='none'"></audio>
-                {% endif %}
-                <div class="track-votes">Количество голосов: <span
-                        id="votes-{{ track.id }}">{{ track.vote_count }}</span></div>
-                {% if user.is_authenticated %}
-                    <button class="track-vote-button" data-track-id="{{ track.id }}">Голосовать за трек</button>
-                {% endif %}
-                <div class="info-user-track">Добавил: {{ track.added_by.username }}</div>
-                {% if user == room.created_by or user.is_staff %}
-                    <button type="submit" class="delete-track-btn" data-track-id="{{ track.id }}">Удалить трек</button>
-                    {% if track.track.audio_file %}
-                        <button type="submit" class="start-broadcast-btn" data-track-id="{{ track.id }}">Запустить эфир
-                            с треком
-                        </button>
+        <div class="tracks-container">
+            {% for track in tracks %}
+                <div class="track-container" data-track-id="{{ track.id }}">
+                    {% if track.track.get_cover_image %}
+                        <img src="{{ track.track.get_cover_image }}" width="200" height="200"
+                             style="object-fit: cover; padding-left: 24px; padding-top: 12px;">
                     {% endif %}
-                {% endif %}
-            </div>
-        {% endfor %}
-    </div>
-    {% if user.is_authenticated %}
-        <h3 style="text-align: center">Добавить трек</h3>
-        <form method="post" action="{% url 'add_track' room.slug %}" enctype="multipart/form-data"
-              class="form-track-container">
-            {% csrf_token %}
-            <div>
-                <label>Введите название трека</label>
-                {{ form.title }}
-                <label>Введите название исполнителя</label>
-                {{ form.artist }}
-                <label>Введите ссылку на изображение с обложкой трека</label>
-                {{ form.cover_url }}
-                <label>Выберите файл с аудио</label>
-                {{ form.audio_file }}
-                <label>Выберите файл с изображением обложки трека</label>
-                {{ form.cover_image }}
-                {% if form.errors %}
-                    <div class="errors">
-                        {% for field in form %}
-                            {% for error in field.errors %}
-                                <p>{{ error }}</p>
+                    <h2 class="track-name">{{ track.track.artist }} - {{ track.track.title }}</h2>
+                    {% if track.track.audio_file %}
+                        <audio class="track-audio" controls src="{{ track.track.audio_file.url }}" onerror="this.style.display='none'"></audio>
+                    {% endif %}
+                    <div class="track-votes">Количество голосов: <span
+                            id="votes-{{ track.id }}">{{ track.vote_count }}</span></div>
+                    {% if user.is_authenticated %}
+                        <button class="track-vote-button" data-track-id="{{ track.id }}">Голосовать за трек</button>
+                    {% endif %}
+                    <div class="info-user-track">Добавил: {{ track.added_by.username }}</div>
+                    {% if user == room.created_by or user.is_staff %}
+                        <button type="submit" class="delete-track-btn" data-track-id="{{ track.id }}">Удалить трек</button>
+                        {% if track.track.audio_file %}
+                            <button type="submit" class="start-broadcast-btn" data-track-id="{{ track.id }}">Запустить эфир
+                                с треком
+                            </button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        {% if user.is_authenticated %}
+            <h3 style="text-align: center">Добавить трек</h3>
+            <form method="post" action="{% url 'add_track' room.slug %}" enctype="multipart/form-data"
+                  class="form-track-container">
+                {% csrf_token %}
+                <div>
+                    <label>Введите название трека</label>
+                    {{ form.title }}
+                    <label>Введите название исполнителя</label>
+                    {{ form.artist }}
+                    <label>Введите ссылку на изображение с обложкой трека</label>
+                    {{ form.cover_url }}
+                    <label>Выберите файл с аудио</label>
+                    {{ form.audio_file }}
+                    <label>Выберите файл с изображением обложки трека</label>
+                    {{ form.cover_image }}
+                    {% if form.errors %}
+                        <div class="errors">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
                             {% endfor %}
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-            <button class="btn-add-track" type="submit">Добавить трек</button>
-        </form>
+                        </div>
+                    {% endif %}
+                </div>
+                <button class="btn-add-track" type="submit">Добавить трек</button>
+            </form>
+        {% endif %}
     {% endif %}
 {% endblock %}

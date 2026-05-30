@@ -34,6 +34,7 @@ urlpatterns = [
     path('create_room/', create_room, name='create_room'),
     path('rooms/<slug:room_slug>/delete_track/<int:track_id>/', delete_track, name='delete_track'),
     path('rooms/<slug:room_slug>/delete_room/', delete_room, name='delete_room'),
+    path('rooms/<slug:room_slug>/unlock_room/', unlock_room, name='unlock_room')
 ]
 
 if settings.DEBUG:

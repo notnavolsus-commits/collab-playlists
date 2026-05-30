@@ -11,8 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-
-from asgiref.typing import ASGIApplication
+from django.conf.global_settings import MESSAGE_STORAGE
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -135,3 +134,5 @@ CHANNEL_LAYERS = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
