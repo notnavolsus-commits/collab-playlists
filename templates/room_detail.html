@@ -4,17 +4,20 @@
 {% block extra_css %}{% endblock %}
 {% block content %}
     {% if need_password %}
-        <form method="post" action="{% url 'unlock_room' room.slug %}">
-            {% csrf_token %}
-            <label>
-                <input type="password" name="password" placeholder="Пароль" required>
-            </label>
-            <button type="submit">Войти</button>
-        </form>
+        <div class="form-container">
+            <h2 class="auth-header">Введите пароль комнаты</h2>
+            <form method="post" action="{% url 'unlock_room' room.slug %}">
+                {% csrf_token %}
+                <label>
+                    <input type="password" name="password" placeholder="Пароль" required>
+                </label>
+                <button type="submit">Войти</button>
+            </form>
+        </div>
     {% else %}
         <script> window.isCreator = {% if user.is_authenticated and user == room.created_by %}true{% else %}false{% endif %};</script>
         <script src="{% static 'rooms/js/room.js' %}"></script>
-        <h1>Комната {{ room.name }}</h1>
+        <h1 class="room-name">Комната {{ room.name }}</h1>
         <p class="tracks-counter"> В комнате {{ tracks_count }} </p>
         <div class="broadcast-status" style="display: none">
             Сейчас в эфире: <span id="broadcast-track-name"></span>
@@ -29,6 +32,15 @@
             </form>
             <button type="submit" class="stop-broadcast-btn" style="display: none;">Остановить эфир</button>
         {% endif %}
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+                {% for msg in chat_history %}
+                    <div><strong>{{ msg.user.username }}:</strong> {{ msg.message }}</div>
+                {% endfor %}
+            </div>
+            <input type="text" id="chat-input" placeholder="Написать сообщение...">
+            <button id="send-chat">Отправить</button>
+        </div>
 
         <div class="tracks-container">
             {% for track in tracks %}

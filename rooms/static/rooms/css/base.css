@@ -72,7 +72,9 @@ footer {
 }
 
 .room-name {
-
+    margin: 1rem;
+    max-width: 300px;
+    text-align: center;
 }
 
 .room-ref {
@@ -92,7 +94,8 @@ footer {
     background: rgba(51, 51, 51, 0.63);
     border-radius: 5px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    margin-bottom: 10px;
+    margin-bottom: 1rem;
+    gap: 1.5rem;
 }
 
 .track-name, .info-user-track, .track-votes {
@@ -102,6 +105,8 @@ footer {
 .track-name {
     margin-left: 20px;
     margin-top: 0;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .track-vote-button {
@@ -116,6 +121,20 @@ footer {
 .track-audio {
     margin-left: 10px;
     border-radius: 10px;
+    width: 100%;
+    max-width: 350px;
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .track-audio::-webkit-media-controls-panel {
@@ -259,3 +278,242 @@ footer {
     padding: 0.75rem 1.5rem;
 }
 
+.delete-room-btn,
+.delete-track-btn,
+.start-broadcast-btn,
+.stop-broadcast-btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.delete-room-btn,
+.delete-track-btn {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+}
+
+.delete-track-btn:hover,
+.delete-room-btn:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.stop-broadcast-btn {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #333;
+}
+
+.stop-broadcast-btn:hover {
+    background: linear-gradient(135deg, #e0a800, #d39e00);
+    transform: translateY(-2px);
+}
+
+
+.start-broadcast-btn {
+    background: linear-gradient(135deg, #28a745, #218838);
+    color: white;
+}
+
+.start-broadcast-btn:hover {
+    background: linear-gradient(135deg, #218838, #1e7e34);
+    transform: translateY(-2px);
+}
+.tracks-counter {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #666;
+    margin: 1rem;
+    padding: 0.5rem;
+    background: #e9ecef;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+.broadcast-status {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    text-align: center;
+    font-weight: 500;
+}
+
+#broadcast-track-name {
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.errors {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+}
+
+.track-vote-button:active {
+    animation: pulse 0.3s ease;
+}
+
+.track-container img {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.track-container img:hover {
+    transform: scale(1.05);
+}
+
+.message {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    animation: slideIn 0.3s ease;
+}
+
+.profile-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    animation: fadeInUp 0.5s ease;
+}
+
+.profile-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+}
+
+.profile-header h1 {
+    font-size: 2rem;
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.profile-info {
+    padding: 2rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.info-row {
+    display: flex;
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.info-row:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.info-label {
+    flex: 0 0 150px;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.95rem;
+}
+
+.info-value {
+    flex: 1;
+    color: #212529;
+    font-size: 0.95rem;
+    word-break: break-word;
+}
+
+.stats {
+    padding: 2rem;
+    background: white;
+}
+
+.stats h3 {
+    margin: 0 0 1.5rem;
+    color: #333;
+    font-weight: 600;
+    font-size: 1.3rem;
+    position: relative;
+    display: inline-block;
+}
+
+.chat-container {
+    position: fixed;
+    top: 55px;
+    right: 20px;
+    max-width: 300px;
+    margin: 2rem auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    z-index: 1000;
+}
+
+.chat-messages {
+    position: sticky;
+    height: 350px;
+    right: 20px;
+    overflow-y: auto;
+    padding: 1rem;
+    background: #f9f9f9;
+}
+
+.chat-messages div {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: white;
+    border-radius: 8px;
+    border-left: 3px solid #667eea;
+    animation: slideIn 0.3s ease;
+}
+
+#chat-input {
+    width: calc(100% - 80px);
+    padding: 0.75rem;
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    font-size: 0.95rem;
+}
+
+#chat-input:focus {
+    outline: none;
+    background: #fff5e6;
+}
+
+#send-chat {
+    width: 100px;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+#send-chat:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}

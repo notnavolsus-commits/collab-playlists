@@ -59,3 +59,12 @@ class Vote(models.Model):
             models.UniqueConstraint(fields=['user', 'room_track'], name='unique_comb_user_track')
         ]
 
+class ChatMessage(models.Model):
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='chat_messages')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    username = models.CharField(max_length=150)
+    message = models.CharField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']

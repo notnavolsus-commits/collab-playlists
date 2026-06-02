@@ -35,7 +35,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const voteButtons = document.querySelectorAll('.track-vote-button');
     const start_broadcast_buttons = document.querySelectorAll('.start-broadcast-btn');
     const delete_track_buttons = document.querySelectorAll('.delete-track-btn');
-    const stopBtn = document.querySelector('.stop-broadcast-btn')
+    const stopBtn = document.querySelector('.stop-broadcast-btn');
+    const chatSendBtn = document.getElementById('send-chat');
+    const chatInput = document.getElementById('chat-input');
+    const chatMessages = document.getElementById('chat-messages');
 
     // ========== ОБРАБОТЧИК КНОПКИ "ОСТАНОВИТЬ ЭФИР" ==========
     if (stopBtn) {
@@ -54,90 +57,90 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ========== УДАЛЕНИЕ ТРЕКА (AJAX) ==========
     for (let button of delete_track_buttons) {
-            button.addEventListener('click', () => {
-                let trackId = button.dataset.trackId;
-                let roomSlug = slug;
-                let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        button.addEventListener('click', () => {
+            let trackId = button.dataset.trackId;
+            let roomSlug = slug;
+            let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                if (!confirm('Удалить трек?')) return;
+            if (!confirm('Удалить трек?')) return;
 
-                fetch(`/rooms/${roomSlug}/delete_track/${trackId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                    },
-                })
-                    .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`HTTP server error! Status ${response.status}`);
-                            }
-                            return response.json();
+            fetch(`/rooms/${roomSlug}/delete_track/${trackId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+            })
+                .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP server error! Status ${response.status}`);
                         }
-                    )
-                    .then(data => {
-                        if (data.success) {
-                            const track = document.querySelector(`div.track-container[data-track-id="${trackId}"]`);
-                            if (track) {
-                                track.remove();
-                            }
-                            if (trackCounter) {
-                                let text = trackCounter.innerText;
-                                let match = text.match(/\d+/);
-                                if (match) {
-                                    let currentCount = parseInt(match[0]);
-                                    trackCounter.innerText = text.replace(currentCount, currentCount - 1);
+                        return response.json();
+                    }
+                )
+                .then(data => {
+                    if (data.success) {
+                        const track = document.querySelector(`div.track-container[data-track-id="${trackId}"]`);
+                        if (track) {
+                            track.remove();
+                        }
+                        if (trackCounter) {
+                            let text = trackCounter.innerText;
+                            let match = text.match(/\d+/);
+                            if (match) {
+                                let currentCount = parseInt(match[0]);
+                                trackCounter.innerText = text.replace(currentCount, currentCount - 1);
 
-                                }
                             }
-                        } else alert(data.error);
-                    })
-                    .catch(error => {
-                        console.error('Ошибка: ', error);
-                        alert('Не удалось удалить трек');
-                    });
-            });
-        }
+                        }
+                    } else alert(data.error);
+                })
+                .catch(error => {
+                    console.error('Ошибка: ', error);
+                    alert('Не удалось удалить трек');
+                });
+        });
+    }
 
     // ========== ЗАПУСК ПРЯМОГО ЭФИРА (ТОЛЬКО ДЛЯ СОЗДАТЕЛЯ) ==========
     if (isCreator) {
-            for (let button of start_broadcast_buttons) {
-                button.addEventListener('click', () => {
-                    if (isBroadcasting) {
-                        alert('Эфир уже идёт. Остановите его перед запуском нового.')
-                        return;
-                    }
-                    let trackId = button.dataset.trackId;
-                    socket.send(JSON.stringify({action: 'start_broadcast', track_id: trackId}));
-                    if (stopBtn) stopBtn.style.display = 'inline-block';
+        for (let button of start_broadcast_buttons) {
+            button.addEventListener('click', () => {
+                if (isBroadcasting) {
+                    alert('Эфир уже идёт. Остановите его перед запуском нового.')
+                    return;
+                }
+                let trackId = button.dataset.trackId;
+                socket.send(JSON.stringify({action: 'start_broadcast', track_id: trackId}));
+                if (stopBtn) stopBtn.style.display = 'inline-block';
 
-                    currentBroadcastTrackId = trackId;
-                    isBroadcasting = true;
+                currentBroadcastTrackId = trackId;
+                isBroadcasting = true;
 
-                    let trackContainer = document.querySelector(`div.track-container[data-track-id="${trackId}"]`)
-                    let trackName = trackContainer.querySelector('h2.track-name').innerText;
-                    if (broadcastStatusPar) {
-                        let broadcastNameSpan = broadcastStatusPar.querySelector('span#broadcast-track-name');
-                        if (broadcastNameSpan) broadcastNameSpan.innerText = trackName;
-                        broadcastStatusPar.style.display = 'inline-block';
-                    }
+                let trackContainer = document.querySelector(`div.track-container[data-track-id="${trackId}"]`)
+                let trackName = trackContainer.querySelector('h2.track-name').innerText;
+                if (broadcastStatusPar) {
+                    let broadcastNameSpan = broadcastStatusPar.querySelector('span#broadcast-track-name');
+                    if (broadcastNameSpan) broadcastNameSpan.innerText = trackName;
+                    broadcastStatusPar.style.display = 'inline-block';
+                }
 
-                    if (syncInterval) clearInterval(syncInterval);
+                if (syncInterval) clearInterval(syncInterval);
 
-                    syncInterval = setInterval(() => {
-                        if (isBroadcasting && currentBroadcastTrackId) {
-                            const trackPlayer = document.querySelector(`div.track-container[data-track-id="${currentBroadcastTrackId}"] > audio`);
-                            if (trackPlayer && !trackPlayer.paused) {
-                                socket.send(JSON.stringify({
-                                    action: 'sync_broadcast',
-                                    track_id: currentBroadcastTrackId,
-                                    current_time: trackPlayer.currentTime
-                                }));
-                            }
+                syncInterval = setInterval(() => {
+                    if (isBroadcasting && currentBroadcastTrackId) {
+                        const trackPlayer = document.querySelector(`div.track-container[data-track-id="${currentBroadcastTrackId}"] > audio`);
+                        if (trackPlayer && !trackPlayer.paused) {
+                            socket.send(JSON.stringify({
+                                action: 'sync_broadcast',
+                                track_id: currentBroadcastTrackId,
+                                current_time: trackPlayer.currentTime
+                            }));
                         }
-                    }, 5000);
-                });
-            }
+                    }
+                }, 5000);
+            });
         }
+    }
 
     // ========== ОБРАБОТЧИК КНОПОК ГОЛОСОВАНИЯ ==========
     for (let button of voteButtons) {
@@ -145,6 +148,24 @@ document.addEventListener('DOMContentLoaded', function () {
             const trackId = button.dataset.trackId
             socket.send(JSON.stringify({action: 'vote', room_track_id: trackId}));
         });
+    }
+
+    if (chatSendBtn && chatInput &&chatMessages) {
+        chatSendBtn.addEventListener('click', () => {
+            const message = chatInput.value.trim();
+
+            if (message) {
+                socket.send(JSON.stringify({action: 'chat_message', message: message}));
+                chatInput.value = '';
+            }
+        });
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                chatSendBtn.click();
+            }
+        })
     }
 
     // ========== ОБРАБОТКА ВХОДЯЩИХ WEBSOCKET СООБЩЕНИЙ ==========
@@ -224,6 +245,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 isBroadcasting = false;
                 currentBroadcastTrackId = null;
                 if (stopBtn) stopBtn.style.display = 'none';
+            }
+        }
+
+        else if (data.action === 'chat_message') {
+            if (chatMessages) {
+                const msgDiv = document.createElement('div');
+                msgDiv.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+                chatMessages.appendChild(msgDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        else if (data.action === 'chat_history') {
+            if (chatMessages) {
+                const msgDiv = document.createElement('div');
+                msgDiv.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+                chatMessages.appendChild(msgDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
             }
         }
     }
