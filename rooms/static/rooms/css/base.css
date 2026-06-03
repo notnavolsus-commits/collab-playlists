@@ -281,7 +281,9 @@ footer {
 .delete-room-btn,
 .delete-track-btn,
 .start-broadcast-btn,
-.stop-broadcast-btn {
+.stop-broadcast-btn,
+.pause-broadcast-btn,
+.resume-broadcast-btn {
     display: inline-block;
     padding: 0.5rem 1rem;
     margin: 0.5rem;
