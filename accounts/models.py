@@ -6,7 +6,7 @@ from django.conf import settings
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    avatar = models.ImageField(upload_to='media/avatars/', blank=True, null=True)
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
 
     def __str__(self):
         return f'{self.user.username}\'s profile'
@@ -27,3 +27,8 @@ class Profile(models.Model):
         if self.avatar and self.avatar.url:
             return self.avatar.url
         return settings.DEFAULT_AVATAR_URL
+
+    def get_avatar_url_relative(self):
+        if self.avatar and self.avatar.url:
+            return '/media' + self.avatar.url.split('media')[1]
+        return '/media' + settings.DEFAULT_AVATAR_URL.split('media')[1]

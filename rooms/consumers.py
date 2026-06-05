@@ -30,6 +30,12 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
         self.room_slug = self.scope['url_route']['kwargs']['room_slug']
         self.room_group_name = f'room_{self.room_slug}'
         self.heartbeat_task = None
+        try:
+            room = await self.get_room_by_slug(room_slug=self.room_slug)
+            self.room_id = room.id
+        except Room.DoesNotExist:
+            await self.close()
+            return
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -38,8 +44,6 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
 
         await self.accept()
 
-        room = await self.get_room_by_slug(room_slug=self.room_slug)
-        self.room_id = room.id
         if await self.room_creator_validation(room, self.scope['user']):
             self.heartbeat_task = asyncio.create_task(self.heartbeat_loop())
         history = await self.get_history_chat(room_id=room.id)
@@ -55,7 +59,7 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
         try:
             state = await redis_client_broadcast.hgetall(f'room_id:{room.id}')
         except Exception as e:
-            print('Ошибка в сохранении данных в Redis при записи состояние в базу эфира')
+            print('Ошибка в сохранении данных в Redis при записи состояние в базу эфира', e)
         if state and state.get('track_id') != 'none':
             await self.send(text_data=json.dumps({
                 'action': 'sync_state',
