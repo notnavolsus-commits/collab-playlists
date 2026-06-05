@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 import re
 
+from accounts.models import Profile
+
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
@@ -43,6 +45,14 @@ class CustomUserCreationForm(UserCreationForm):
             raise ValidationError('Пользователь с таким email уже существует')
         return email
 
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        avatar = self.cleaned_data.get('avatar')
+        if commit:
+            user.save()
+        if avatar:
+            profile, created = Profile.objects.get_or_create(user=user, defaults={'avatar': avatar})
+        return user
 
 class CustomAuthenticationForm(AuthenticationForm):
     username = forms.CharField(

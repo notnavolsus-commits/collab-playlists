@@ -11,7 +11,7 @@ def register(request):
         return redirect('rooms_list')
 
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
             # Автоматически входим после регистрации

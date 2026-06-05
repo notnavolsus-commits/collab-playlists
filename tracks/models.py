@@ -7,7 +7,7 @@ def upload_media_path(instance, filename):
     ext = filename.split('.')[-1]
     filename = f'{instance.artist} - {instance.title}.{ext}'
     if ext in ('jpg' ,'jpeg', 'webp', 'png'):
-        return os.path.join('track/covers', filename)
+        return os.path.join('tracks/covers', filename)
     return os.path.join('tracks/audio', filename)
 
 class Track(models.Model):
