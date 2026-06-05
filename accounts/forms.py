@@ -22,7 +22,8 @@ class CustomUserCreationForm(UserCreationForm):
     )
     avatar = forms.FileField(
         required=False,
-        widget=forms.FileInput(attrs={'placeholder': 'Файл изображение аватара', 'class': 'avatar-input', 'accept': 'image/jpeg,image/png,image/jpg'}),
+        widget=forms.FileInput(attrs={'placeholder': 'Файл изображение аватара', 'class': 'avatar-input',
+                                      'accept': 'image/jpeg,image/png,image/jpg'}),
     )
 
     class Meta:
