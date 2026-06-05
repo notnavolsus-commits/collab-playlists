@@ -20,6 +20,10 @@ class CustomUserCreationForm(UserCreationForm):
         required=False,
         widget=forms.TextInput(attrs={'placeholder': 'Ваша фамилия'})
     )
+    avatar = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={'placeholder': 'Файл изображение аватара', 'class': 'avatar-input', 'accept': 'image/jpeg,image/png,image/jpg'}),
+    )
 
     class Meta:
         model = User

@@ -289,27 +289,23 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             updateControlButtons();
             console.log(`Эфир остановлен (${data.username || 'System'})`);
-        }
-
-        else if (data.action === 'chat_message') {
+        } else if (data.action === 'chat_message') {
             if (chatMessages) {
                 const msgDiv = document.createElement('div');
-                msgDiv.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+                msgDiv.innerHTML = `<img src="${data.avatar_url}" alt="Avatar" class="avatar-small" onerror="this.src='/media/avatars/default.png'">
+                                    <strong>${data.username}:</strong> ${data.message}`;
                 chatMessages.appendChild(msgDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
-        }
-
-        else if (data.action === 'chat_history') {
+        } else if (data.action === 'chat_history') {
             if (chatMessages) {
                 const msgDiv = document.createElement('div');
-                msgDiv.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+                msgDiv.innerHTML = `<img src="${data.avatar_url}" alt="Avatar" class="avatar-small" onerror="this.src='/media/avatars/default.png'">
+                                    <strong>${data.username}:</strong> ${data.message}`;
                 chatMessages.appendChild(msgDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
-        }
-
-        else if (data.action === 'sync_state') {
+        } else if (data.action === 'sync_state') {
             let trackId = data.track_id;
             let currentTime = data.current_time;
             let isPlaying = data.is_playing;
@@ -336,8 +332,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 isPaused = !isPlaying;
                 updateControlButtons();
             }
-        }
-        else if (data.action === 'pause_broadcast') {
+        } else if (data.action === 'pause_broadcast') {
             let currentTime = data.current_time;
             let pausedBy = data.paused_by || 'System';
             isPaused = true;
@@ -355,8 +350,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             updateControlButtons();
             console.log(`Эфир на паузе (${pausedBy})`);
-        }
-        else if (data.action === 'resume_broadcast') {
+        } else if (data.action === 'resume_broadcast') {
             let currentTime = data.current_time;
             let resumedBy = data.resumed_by || 'System';
             isPaused = false;
@@ -378,8 +372,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             updateControlButtons();
             console.log(`Эфир возобновлен (${resumedBy})`)
-        }
-        else if (data.action === 'sync_time') {
+        } else if (data.action === 'sync_time') {
             let currentTime = data.current_time;
             let serverTimestamp = data.server_timestamp;
             let isPlaying = data.is_playing;

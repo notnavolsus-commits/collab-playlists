@@ -37,7 +37,10 @@
         <div class="chat-container">
             <div class="chat-messages" id="chat-messages">
                 {% for msg in chat_history %}
-                    <div><strong>{{ msg.user.username }}:</strong> {{ msg.message }}</div>
+                    <div>
+                        <img src="{{ msg.avatar_url|default:'/media/avatars/default.png' }}" alt="Avatar" class="avatar-small" onerror="this.src='/media/avatars/default.png'">
+                        <strong>{{ msg.user.username }}:</strong> {{ msg.message }}
+                    </div>
                 {% endfor %}
             </div>
             <input type="text" id="chat-input" placeholder="Написать сообщение...">

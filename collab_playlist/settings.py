@@ -132,7 +132,8 @@ CHANNEL_LAYERS = {
 }
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = BASE_DIR / '/media/'
+DEFAULT_AVATAR_URL = '/media/avatars/default.png'
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
