@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from tracks.models import Track
@@ -65,6 +66,16 @@ class ChatMessage(models.Model):
     username = models.CharField(max_length=150)
     message = models.CharField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def avatar_url(self):
+        if hasattr(self.user, 'profile'):
+            return self.user.profile.get_avatar_url() or settings.DEFAULT_AVATAR_URL
+        return settings.DEFAULT_AVATAR_URL
+
+    @property
+    def formatted_timestamp(self):
+        return self.created_at.strftime('%Y-%m-%d %H:%M:%S')
 
     class Meta:
         ordering = ['-created_at']

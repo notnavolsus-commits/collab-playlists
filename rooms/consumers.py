@@ -29,7 +29,8 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_slug = self.scope['url_route']['kwargs']['room_slug']
         self.room_group_name = f'room_{self.room_slug}'
-        self.heartbeat_task = None
+        self.is_creator = None
+        self.heartbeat_task = False
         try:
             room = await self.get_room_by_slug(room_slug=self.room_slug)
             self.room_id = room.id
@@ -44,7 +45,9 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
 
         await self.accept()
 
-        if await self.room_creator_validation(room, self.scope['user']):
+        self.is_creator = await self.room_creator_validation(room, self.scope['user'])
+
+        if self.is_creator:
             self.heartbeat_task = asyncio.create_task(self.heartbeat_loop())
         history = await self.get_history_chat(room_id=room.id)
         for msg in history:
@@ -60,6 +63,7 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
             state = await redis_client_broadcast.hgetall(f'room_id:{room.id}')
         except Exception as e:
             print('Ошибка в сохранении данных в Redis при записи состояние в базу эфира', e)
+            state = None
         if state and state.get('track_id') != 'none':
             await self.send(text_data=json.dumps({
                 'action': 'sync_state',
@@ -100,32 +104,39 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
         if handler:
             await handler(data)
 
+    async def _save_broadcast_state(self, mapping):
+        key = f'room_id:{self.room_id}'
+        last_update = int(time() * 1000)
+        mapping = {'last_update': str(last_update), **mapping}
+        try:
+            await redis_client_broadcast.hset(key, mapping=mapping)
+            await redis_client_broadcast.expire(key, 3600)
+        except Exception as e:
+            print(f'Ошибка сохранения состояния в Redis: {e}')
+        return last_update
+
     async def _handle_vote(self, data):
-        if not self.scope['user'].is_authenticated:
-            return
+        if not self.scope['user'].is_authenticated: return
         toggle_dict = await self.toggle_vote(self.scope['user'].id, data['room_track_id'])
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'send_vote_update',
-                **toggle_dict
-            }
-        )
+        if toggle_dict:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'send_vote_update',
+                    **toggle_dict
+                }
+            )
 
     async def _handle_start_broadcast(self, data):
         room_track_id = data['track_id']
         user = self.scope['user']
-        room = await self.get_room_by_room_track(room_track_id)
-        if await self.room_creator_validation(room, user):
-            key = f'room_id:{room.id}'
+        if self.is_creator:
             try:
-                await redis_client_broadcast.hset(key, mapping={'track_id': str(room_track_id),
-                                                                'current_time': '0',
-                                                                'is_playing': 'true',
-                                                                'last_update': str(int(time() * 1000)),
-                                                                'started_by': user.username,
-                                                                'room_slug': room.slug})
-                await redis_client_broadcast.expire(key, 3600)
+                await self._save_broadcast_state({'track_id': str(room_track_id),
+                                                  'current_time': '0',
+                                                  'is_playing': 'true',
+                                                  'started_by': user.username,
+                                                  'room_slug': self.room_slug})
             except Exception as e:
                 print('Ошибка в сохранении данных в Redis при старте эфира: ', e)
             await self.channel_layer.group_send(
@@ -137,84 +148,46 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
                 }
             )
 
-    async def _handle_sync_broadcast(self, data):
+    async def _handle_generic_broadcast(self, action, data):
         room_track_id = data['track_id']
-        user = self.scope['user']
         current_time = data['current_time']
-        if await self._ensure_creator(self.room_slug, user):
-            key = f'room_id:{self.room_id}'
-            last_update = int(time() * 1000)
-            try:
-                await redis_client_broadcast.hset(key, mapping={'current_time': str(current_time),
-                                                                'last_update': str(last_update)})
-            except Exception as e:
-                print('Ошибка в сохранении данных в Redis при синхронизации эфира: ', e)
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'sync_broadcast',
-                    'action': 'sync_broadcast',
-                    'track_id': room_track_id,
-                    'current_time': current_time,
-                    'server_timestamp': last_update,
-                }
-            )
+        if self.is_creator:
+            redis_msg = {'current_time': str(current_time)}
+            group_msg = {
+                'type': None,
+                'action': None,
+                'track_id': room_track_id,
+                'current_time': current_time,
+            }
+            if action == 'pause':
+                redis_msg.update({'is_playing': 'false'})
+            elif action == 'resume':
+                redis_msg.update({'is_playing': 'true'})
+            last_update = await self._save_broadcast_state(redis_msg)
+            group_msg.update({'server_timestamp': last_update})
+            if action == 'sync':
+                group_msg['type'] = group_msg['action'] = 'sync_broadcast'
+            elif action in ('pause', 'resume'):
+                group_msg.update({'username': self.scope['user'].username})
+                if action == 'pause':
+                    group_msg['type'] = group_msg['action'] = 'pause_broadcast'
+                elif action == 'resume':
+                    group_msg['type'] = group_msg['action'] = 'resume_broadcast'
+            await self.channel_layer.group_send(self.room_group_name, group_msg)
+
+    async def _handle_sync_broadcast(self, data):
+        await self._handle_generic_broadcast('sync', data)
 
     async def _handle_pause_broadcast(self, data):
-        room_slug = data['room_slug']
-        current_time = data['current_time']
-        if await self._ensure_creator(room_slug, self.scope['user']):
-            key = f'room_id:{self.room_id}'
-            last_update = int(time() * 1000)
-            try:
-                await redis_client_broadcast.hset(key, mapping={'is_playing': 'false', 'last_update': str(last_update),
-                                                                'current_time': str(current_time)})
-            except Exception as e:
-                print('Ошибка в сохранении данных в Redis при паузе эфира: ', e)
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'pause_broadcast',
-                    'action': 'pause_broadcast',
-                    'room_slug': room_slug,
-                    'current_time': current_time,
-                    'server_timestamp': last_update,
-                    'username': self.scope['user'].username,
-                }
-            )
+        await self._handle_generic_broadcast('pause', data)
 
     async def _handle_resume_broadcast(self, data):
-        room_slug = data['room_slug']
-        current_time = data['current_time']
-        if await self._ensure_creator(room_slug, self.scope['user']):
-            key = f'room_id:{self.room_id}'
-            last_update = int(time() * 1000)
-            try:
-                await redis_client_broadcast.hset(key, mapping={'is_playing': 'true', 'last_update': str(last_update),
-                                                                'current_time': str(current_time)})
-            except Exception as e:
-                print('Ошибка в сохранении данных в Redis при продолжении эфира: ', e)
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'resume_broadcast',
-                    'action': 'resume_broadcast',
-                    'room_slug': room_slug,
-                    'current_time': current_time,
-                    'server_timestamp': last_update,
-                    'username': self.scope['user'].username,
-                }
-            )
+        await self._handle_generic_broadcast('resume', data)
 
     async def _handle_stop_broadcast(self, data):
         room_slug = data['room_slug']
-        if await self._ensure_creator(room_slug, self.scope['user']):
-            key = f'room_id:{self.room_id}'
-            try:
-                await redis_client_broadcast.hset(key, mapping={'is_playing': 'false', 'track_id': 'none',
-                                                                'last_update': str(int(time() * 1000))})
-            except Exception as e:
-                print('Ошибка в сохранении данных в Redis при остановке эфира: ', e)
+        if self.is_creator:
+            await self._save_broadcast_state({'is_playing': 'false', 'track_id': 'none'})
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -264,16 +237,6 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
         else:
             return False
 
-    async def _ensure_creator(self, room_slug: str, user):
-        room = await self.get_room_by_slug(room_slug)
-        return await self.room_creator_validation(room, user)
-
-    @database_sync_to_async
-    def get_room_by_room_track(self, track_id):
-        room_track = RoomTrack.objects.select_related('track', 'room').get(id=track_id)
-        room = room_track.room
-        return room
-
     @database_sync_to_async
     def get_room_by_slug(self, room_slug):
         return Room.objects.get(slug=room_slug)
@@ -314,14 +277,12 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_chat_history_from_db(self, room_id, limit):
         qs = ChatMessage.objects.filter(room=room_id).order_by('-created_at')[:limit]
-        avatar_url = settings.DEFAULT_AVATAR_URL
         return [
             {
                 'username': msg.username,
                 'message': msg.message,
-                'timestamp': msg.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                'avatar_url': msg.user.profile.get_avatar_url() or avatar_url if msg.user and hasattr(msg.user,
-                                                                                                      'profile') else avatar_url,
+                'timestamp': msg.formatted_timestamp,
+                'avatar_url': msg.avatar_url,
             }
             for msg in reversed(qs)
         ]
