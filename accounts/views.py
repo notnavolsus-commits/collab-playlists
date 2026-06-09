@@ -1,8 +1,10 @@
+from itertools import chain
+
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from .forms import CustomUserCreationForm, CustomAuthenticationForm, EditUserForm, EditProfileForm
 
 
 def register(request):
@@ -68,3 +70,24 @@ def user_logout(request):
 def profile(request):
     """Профиль пользователя"""
     return render(request, 'profile.html', {'user': request.user})
+
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        user_form = EditUserForm(request.POST, instance=request.user)
+        profile_form = EditProfileForm(request.POST, request.FILES, instance=request.user.profile)
+        if user_form.is_valid() and profile_form.is_valid():
+            user = user_form.save()
+            profile = profile_form.save()
+            messages.success(request, f'Редактирование профиля {user.username} успешно завершено.')
+            return redirect('profile')
+        else:
+            for field, errors in chain(user_form.errors.items(), profile_form.errors.items()):
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        user_form = EditUserForm(instance=request.user)
+        profile_form = EditProfileForm(instance=request.user.profile)
+    return render(request, 'edit_profile.html', {'user_form': user_form, 'profile_form': profile_form})
+
+

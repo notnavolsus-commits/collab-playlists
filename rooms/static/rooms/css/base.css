@@ -535,3 +535,51 @@ footer {
     object-fit: cover;
     flex-shrink: 0;
 }
+
+a.change-profile,
+.back-to-profile {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 8px 16px;
+    color: #4a90e2;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+a.change-profile:hover,
+.back-to-profile:hover {
+    background-color: rgba(74, 144, 226, 0.1);
+    transform: translateY(-1px);
+}
+
+.form-section {
+    margin-bottom: 35px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.form-section:hover {
+    background: #f5f7fa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.change-profile-btn {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 14px;
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.change-profile-btn:hover {
+    background: linear-gradient(135deg, #35669e, #357abd);
+}

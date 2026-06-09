@@ -149,6 +149,7 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
             )
 
     async def _handle_generic_broadcast(self, action, data):
+        """Обрабатываем sync, pause, resume"""
         room_track_id = data['track_id']
         current_time = data['current_time']
         if self.is_creator:
@@ -240,6 +241,13 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_room_by_slug(self, room_slug):
         return Room.objects.get(slug=room_slug)
+
+    @database_sync_to_async
+    def get_user_by_username(self, username):
+        try:
+            return User.objects.get(username=username)
+        except User.DoesNotExist:
+            return None
 
     @database_sync_to_async
     def toggle_vote(self, user_id, room_track_id):
@@ -408,7 +416,7 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
                 avatar_url = settings.DEFAULT_AVATAR_URL
                 if username and username != 'Аноним':
                     try:
-                        user = await get_user_by_username(username)
+                        user = await self.get_user_by_username(username)
                         if user:
                             avatar_url = await self.get_user_avatar(user)
                     except Exception as e:
@@ -420,9 +428,4 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
             return []
 
 
-@database_sync_to_async
-def get_user_by_username(username):
-    try:
-        return User.objects.get(username=username)
-    except User.DoesNotExist:
-        return None
+

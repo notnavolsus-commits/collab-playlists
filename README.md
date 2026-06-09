@@ -70,14 +70,13 @@ daphne -b 0.0.0.0 -p 8000 collab_playlist.asgi:application
 python manage.py runserver
 ```
 
-### Структура проекта
+## Структура проекта
 ```text
 collab_playlist/
 ├── accounts/              # Приложение для аутентификации
 │   ├── models.py         # Profile модель для аватаров
 │   ├── views.py          # Регистрация, логин, профиль
-│   ├── forms.py          # Формы регистрации
-│   └── signals.py
+│   └── forms.py          # Формы регистрации
 ├── collab_playlist/      # Основная конфигурация
 │   ├── settings.py
 │   ├── urls.py
