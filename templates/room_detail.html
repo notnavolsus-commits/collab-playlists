@@ -15,6 +15,13 @@
             </form>
         </div>
     {% else %}
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
         <script> window.isCreator = {% if user.is_authenticated and user == room.created_by %}true{% else %}false{% endif %};</script>
         <script src="{% static 'rooms/js/room.js' %}"></script>
         <h1 class="room-name">Комната {{ room.name }}</h1>
@@ -81,6 +88,10 @@
                   class="form-track-container">
                 {% csrf_token %}
                 <div>
+                    <label>{{ form.operation_type.label }}</label>
+                    {{ form.operation_type }}
+                    <label>{{ form.existing_track.label }}. {{ form.existing_track.help_text }}</label>
+                    {{ form.existing_track }}
                     <label>Введите название трека</label>
                     {{ form.title }}
                     <label>Введите название исполнителя</label>
@@ -98,8 +109,14 @@
                                     <p>{{ error }}</p>
                                 {% endfor %}
                             {% endfor %}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
                         </div>
                     {% endif %}
+
                 </div>
                 <button class="btn-add-track" type="submit">Добавить трек</button>
             </form>

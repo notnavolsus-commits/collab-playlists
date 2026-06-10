@@ -31,7 +31,7 @@ def room_detail(request, room_slug):
     tracks = room.tracks.annotate(
         vote_count = Count('votes')
     )
-    form = TrackForm()
+    form = TrackForm(room=room)
     tracks_count = tracks.count()
     if tracks_count % 10 == 1 and tracks_count % 100 != 11:
         count_word = 'трек'

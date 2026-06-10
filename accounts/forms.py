@@ -75,3 +75,5 @@ class EditProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ('avatar',)
+        widgets = {'avatar': forms.ClearableFileInput(attrs={'class': 'avatar-input-profile'})}
+        labels = {'avatar': 'Аватар',}

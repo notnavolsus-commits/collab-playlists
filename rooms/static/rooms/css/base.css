@@ -583,3 +583,93 @@ a.change-profile:hover,
 .change-profile-btn:hover {
     background: linear-gradient(135deg, #35669e, #357abd);
 }
+
+.avatar-input-profile {
+    margin-bottom: 10px;
+    border: 2px solid #4a90e2;
+    background: #f8f9fa;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.avatar-input-profile:hover {
+    background: #edf2f7;
+    border-color: #357abd;
+}
+
+.avatar-input-profile:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.3);
+}
+
+.avatar-label {
+    margin-left: 30px;
+    margin-top: 0;
+}
+
+input#avatar-clear_id,
+input[name*="clear"] {
+    margin-left: 15px;
+    accent-color: #dc2626;
+    transform: scale(1.1);
+}
+
+label[for="avatar-clear_id"] {
+    color: #dc2626;
+    font-weight: 500;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.messages-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    left: auto;
+    z-index: 1000;
+    max-width: 400px;
+}
+
+.alert {
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border-left: 4px solid #28a745;
+    color: #155724;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    border-left: 4px solid #dc3545;
+    color: #721c24;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.alert {
+    animation: slideIn 0.3s ease-out, fadeOut 0.5s ease-out 4.5s forwards;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}

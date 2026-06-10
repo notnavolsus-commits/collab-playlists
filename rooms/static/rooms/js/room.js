@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ========== ИНИЦИАЛИЗАЦИЯ ПЕРЕМЕННЫХ ==========
 
-    const slug = window.location.pathname.split('/').filter(p => p).pop();
+    const slug = window.location.pathname.split('/rooms/')[1]?.split('/')[0];
     const isCreator = window.isCreator || false;
     let isBroadcasting = false;
     let currentBroadcastTrackId = null;
@@ -10,6 +10,11 @@ document.addEventListener('DOMContentLoaded', function () {
     let isPaused = false;
 
     // ========== НАСТРОЙКА WEBSOCKET СОЕДИНЕНИЯ ==========
+
+    if (!slug) {
+        console.error('Не удалось определить slug комнаты');
+        return;
+    }
 
     const socket = new WebSocket(`ws://127.0.0.1:8000/ws/rooms/${slug}/`);
 

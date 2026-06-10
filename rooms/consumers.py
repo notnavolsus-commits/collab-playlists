@@ -150,14 +150,12 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
 
     async def _handle_generic_broadcast(self, action, data):
         """Обрабатываем sync, pause, resume"""
-        room_track_id = data['track_id']
         current_time = data['current_time']
         if self.is_creator:
             redis_msg = {'current_time': str(current_time)}
             group_msg = {
                 'type': None,
                 'action': None,
-                'track_id': room_track_id,
                 'current_time': current_time,
             }
             if action == 'pause':
@@ -360,7 +358,7 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
             'current_time': event['current_time'],
             'server_timestamp': event.get('server_timestamp'),
             'paused_by': event.get('username', 'System'),
-            'room': event['room_slug']
+            'room': event.get('room_slug', self.room_slug)
         }))
 
     async def stop_broadcast(self, event):
@@ -373,7 +371,7 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
     async def resume_broadcast(self, event):
         await self.send(text_data=json.dumps({
             'action': 'resume_broadcast',
-            'room': event['room_slug'],
+            'room': event.get('room_slug', self.room_slug),
             'current_time': event['current_time'],
             'server_timestamp': event.get('server_timestamp'),
             'resumed_by': event.get('username', 'System'),

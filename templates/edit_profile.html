@@ -4,24 +4,30 @@
     <a href="{% url 'profile' %}" class="back-to-profile">Обратно в профиль</a>
     <div class="form_container">
         <h1 class="form-title">Редактирование профиля</h1>
-        <form method="post" enctype="multipart/form-data" class="profile-form">
+        <div method="post" enctype="multipart/form-data" class="profile-form">
             {% csrf_token %}
-            {{ user_form.as_p }}
-            {% if user_form.errors %}
-                <div class="form-errors">
-                    {% for field in user_form %}
-                        {% for error in field.error %}
-                            <p class="error-message">{{ error }}</p>
-                        {% endfor %}
-                    {% endfor %}
+            {% for field in user_form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="help-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% if field.errors %}
+                        <ul class="error-list">
+                            {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                 </div>
-            {% endif %}
+            {% endfor %}
 
             <div class="avatar-section">
                 <img src="{{ request.user.profile.get_avatar_url_relative }}" alt="Текущий аватар" width="100" height="100">
-                <p class="section-title">Текущий аватар</p>
-            </div>
-            {{ profile_form.as_p }}
+            <p class="avatar-label">{{ profile_form.avatar.label }}</p>
+            <div>
+            {{ profile_form.avatar }}
             {% if profile_form.errors %}
                 <div class="form-errors">
                     {% for field in profile_form %}
@@ -31,7 +37,9 @@
                     {% endfor %}
                 </div>
             {% endif %}
+            </div>
+            </div>
             <button type="submit" class="change-profile-btn">Изменить профиль</button>
-        </form>
     </div>
+    <div>
 {% endblock %}
