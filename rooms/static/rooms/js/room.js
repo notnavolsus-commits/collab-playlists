@@ -136,16 +136,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (syncInterval) clearInterval(syncInterval);
 
                 syncInterval = setInterval(() => {
-                    if (isBroadcasting && currentBroadcastTrackId) {
-                        const trackPlayer = document.querySelector(`div.track-container[data-track-id="${currentBroadcastTrackId}"] > audio`);
-                        if (trackPlayer && !trackPlayer.paused && !isPaused) {
-                            socket.send(JSON.stringify({
-                                action: 'sync_broadcast',
-                                track_id: currentBroadcastTrackId,
-                                current_time: trackPlayer.currentTime
-                            }));
-                        }
-                    }
                 }, 5000);
             });
         }
@@ -184,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 socket.send(JSON.stringify({
                     action: 'pause_broadcast',
                     room_slug: slug,
-                    current_time: trackPlayer.currentTime,
                 }));
                 isPaused = true;
                 updateControlButtons();
@@ -199,7 +188,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 socket.send(JSON.stringify({
                     action: 'resume_broadcast',
                     room_slug: slug,
-                    current_time: trackPlayer.currentTime,
                 }));
                 isPaused = false;
                 updateControlButtons();
@@ -264,17 +252,6 @@ document.addEventListener('DOMContentLoaded', function () {
             updateControlButtons();
         }
 
-        // ----- ОБРАБОТКА СИНХРОНИЗАЦИИ ЭФИРА -----
-        else if (data.action === 'sync_broadcast') {
-            let trackId = data.track_id;
-            let serverTime = data.current_time;
-            let trackPlayer = document.querySelector(`div.track-container[data-track-id="${trackId}"] > audio`);
-            if (trackPlayer && Math.abs(trackPlayer.currentTime - serverTime) > 0.5) {
-                trackPlayer.currentTime = serverTime;
-            }
-            updateControlButtons();
-        }
-
         // ----- ОБРАБОТКА ОСТАНОВКИ ЭФИРА -----
         else if (data.action === 'stop_broadcast') {
             document.querySelectorAll('div.track-container > audio').forEach(trackPlayer => {
@@ -310,7 +287,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 chatMessages.appendChild(msgDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
-        } else if (data.action === 'sync_state') {
+        }
+        else if (data.action === 'sync_state') {
             let trackId = data.track_id;
             let currentTime = data.current_time;
             let isPlaying = data.is_playing;
@@ -337,16 +315,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 isPaused = !isPlaying;
                 updateControlButtons();
             }
-        } else if (data.action === 'pause_broadcast') {
-            let currentTime = data.current_time;
+        }
+        else if (data.action === 'pause_broadcast') {
             let pausedBy = data.paused_by || 'System';
             isPaused = true;
 
             document.querySelectorAll('div.track-container > audio').forEach(trackPlayer => {
                 trackPlayer.pause();
-                if (currentTime) {
-                    trackPlayer.currentTime = currentTime;
-                }
             });
 
             if (broadcastStatusPar) {
@@ -356,7 +331,6 @@ document.addEventListener('DOMContentLoaded', function () {
             updateControlButtons();
             console.log(`Эфир на паузе (${pausedBy})`);
         } else if (data.action === 'resume_broadcast') {
-            let currentTime = data.current_time;
             let resumedBy = data.resumed_by || 'System';
             isPaused = false;
 
@@ -364,9 +338,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (trackId) {
                 let trackPlayer = document.querySelector(`div.track-container[data-track-id="${trackId}"] > audio`);
                 if (trackPlayer) {
-                    if (currentTime) {
-                        trackPlayer.currentTime = currentTime;
-                    }
                     trackPlayer.play().catch(e => console.log('Ошибка воспроизведения: ', e));
                 }
             }
@@ -377,7 +348,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             updateControlButtons();
             console.log(`Эфир возобновлен (${resumedBy})`)
-        } else if (data.action === 'sync_time') {
+        }
+        else if (data.action === 'sync_time') {
             let currentTime = data.current_time;
             let serverTimestamp = data.server_timestamp;
             let isPlaying = data.is_playing;

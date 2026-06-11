@@ -93,7 +93,6 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
         action_handlers = {
             'vote': self._handle_vote,
             'start_broadcast': self._handle_start_broadcast,
-            'sync_broadcast': self._handle_sync_broadcast,
             'pause_broadcast': self._handle_pause_broadcast,
             'resume_broadcast': self._handle_resume_broadcast,
             'stop_broadcast': self._handle_stop_broadcast,
@@ -150,32 +149,20 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
 
     async def _handle_generic_broadcast(self, action, data):
         """Обрабатываем sync, pause, resume"""
-        current_time = data['current_time']
         if self.is_creator:
-            redis_msg = {'current_time': str(current_time)}
-            group_msg = {
-                'type': None,
-                'action': None,
-                'current_time': current_time,
-            }
+            redis_msg = {}
             if action == 'pause':
-                redis_msg.update({'is_playing': 'false'})
+                redis_msg['is_playing'] = 'false'
             elif action == 'resume':
-                redis_msg.update({'is_playing': 'true'})
-            last_update = await self._save_broadcast_state(redis_msg)
-            group_msg.update({'server_timestamp': last_update})
-            if action == 'sync':
-                group_msg['type'] = group_msg['action'] = 'sync_broadcast'
-            elif action in ('pause', 'resume'):
-                group_msg.update({'username': self.scope['user'].username})
-                if action == 'pause':
-                    group_msg['type'] = group_msg['action'] = 'pause_broadcast'
-                elif action == 'resume':
-                    group_msg['type'] = group_msg['action'] = 'resume_broadcast'
+                redis_msg['is_playing'] = 'true'
+            if 'redis_msg' in locals():
+                await self._save_broadcast_state(redis_msg)
+            group_msg = {'username': self.scope['user'].username}
+            if action == 'pause':
+                group_msg['type'] = group_msg['action'] = 'pause_broadcast'
+            elif action == 'resume':
+                group_msg['type'] = group_msg['action'] = 'resume_broadcast'
             await self.channel_layer.group_send(self.room_group_name, group_msg)
-
-    async def _handle_sync_broadcast(self, data):
-        await self._handle_generic_broadcast('sync', data)
 
     async def _handle_pause_broadcast(self, data):
         await self._handle_generic_broadcast('pause', data)
@@ -355,8 +342,6 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
     async def pause_broadcast(self, event):
         await self.send(text_data=json.dumps({
             'action': 'pause_broadcast',
-            'current_time': event['current_time'],
-            'server_timestamp': event.get('server_timestamp'),
             'paused_by': event.get('username', 'System'),
             'room': event.get('room_slug', self.room_slug)
         }))
@@ -372,8 +357,6 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'action': 'resume_broadcast',
             'room': event.get('room_slug', self.room_slug),
-            'current_time': event['current_time'],
-            'server_timestamp': event.get('server_timestamp'),
             'resumed_by': event.get('username', 'System'),
         }))
 
@@ -420,10 +403,7 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
                     except Exception as e:
                         print(f'Ошибка в получении аватара для {username}: ', e)
                 result.append({**data, 'avatar_url': avatar_url})
-            return result
+            return result[::-1]
         except Exception as e:
             print(f'Ошибка в Redis: func get_chat_history_from_redis - {e}')
             return []
-
-
-
