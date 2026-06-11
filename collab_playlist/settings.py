@@ -10,7 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-t9oflvw!+-oxx0i6p%7ql_46r0gss%&-y=&)37f*vq-1)car4w'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-temporary-key-for-dev')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -121,12 +125,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
 ASGI_APPLICATION = 'collab_playlist.asgi.application'
+REDIS_PORT = os.getenv('REDIS_PORT', 6379)
+REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
 CHANNEL_LAYERS = {
     'default' : {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
         },
     }
 }
@@ -139,6 +146,5 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 CHAT_HISTORY_LIMIT = 100
 CHAT_MAX_MESSAGE_LENGTH = 500
-REDIS_PORT = 6379
-REDIS_HOST = '127.0.0.1'
-REDIS_DB_CHAT = 1
+REDIS_DB_CHAT = os.getenv('REDIS_DB_CHAT', 1)
+REDIS_DB_BROADCAST = os.getenv('REDIS_DB_BROADCAST', 2)

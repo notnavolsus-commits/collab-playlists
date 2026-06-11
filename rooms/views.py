@@ -76,6 +76,7 @@ def create_room(request):
             return redirect('room_detail', room_slug=slug)
         return render(request, 'create_room.html', {'form': form})
 
+
 def is_staff_or_creator(model):
     def decorator(view):
         def wrapper(request, **kwargs):
@@ -92,7 +93,9 @@ def is_staff_or_creator(model):
                 return view(request, **kwargs)
             else:
                 raise PermissionDenied
+
         return wrapper
+
     return decorator
 
 
