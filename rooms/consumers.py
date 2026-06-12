@@ -52,7 +52,7 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
         history = await self.get_history_chat(room_id=room.id)
         for msg in history:
             await self.send(text_data=json.dumps({
-                'action': 'chat_history',
+                'action': 'chat_message',
                 'username': msg['username'],
                 'message': msg['message'],
                 'timestamp': msg['timestamp'],
@@ -155,8 +155,7 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
                 redis_msg['is_playing'] = 'false'
             elif action == 'resume':
                 redis_msg['is_playing'] = 'true'
-            if 'redis_msg' in locals():
-                await self._save_broadcast_state(redis_msg)
+            await self._save_broadcast_state(redis_msg)
             group_msg = {'username': self.scope['user'].username}
             if action == 'pause':
                 group_msg['type'] = group_msg['action'] = 'pause_broadcast'
@@ -247,10 +246,9 @@ class ConsumerInRoom(AsyncWebsocketConsumer):
         vote = Vote.objects.filter(user=user, room_track=room_track)
         if vote.exists():
             vote.delete()
-            action = 'unvoted'
         else:
             Vote.objects.create(user=user, room_track=room_track)
-            action = 'voted'
+        action = 'vote_update'
         new_votes_count = Vote.objects.filter(room_track=room_track).count()
         room = room_track.room
         room_tracks = RoomTrack.objects.filter(room=room).annotate(vote_count=Count('votes')).order_by('-vote_count',

@@ -2,7 +2,6 @@ from django.db.models import Count
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
 from rooms.models import RoomTrack, Room
 from .forms import TrackForm
 from .models import Track
