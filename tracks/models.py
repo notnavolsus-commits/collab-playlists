@@ -1,7 +1,10 @@
+import logging
 import os
 from django.db import models
 from django.contrib.auth.models import User
+from mutagen.mp3 import MP3
 
+logger = logging.getLogger(__name__)
 
 def upload_media_path(instance, filename):
     ext = filename.split('.')[-1]
@@ -24,6 +27,13 @@ class Track(models.Model):
         if self.cover_image:
             return self.cover_image.url
         return self.cover_url
+
+    @property
+    def duration(self) -> None | float:
+        if not self.audio_file:
+            logger.debug('duration of track without audio_file')
+            return None
+        return MP3(self.audio_file).info.length
 
     def __str__(self):
         return f'{self.artist} - {self.title}'

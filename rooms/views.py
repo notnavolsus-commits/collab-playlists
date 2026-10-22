@@ -2,7 +2,8 @@ import os
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.http import JsonResponse
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render, redirect
 from django.db.models import Count
 from django.utils.text import slugify
@@ -69,9 +70,9 @@ def create_room(request):
                     break
             is_private = form.cleaned_data['is_private']
             password = form.cleaned_data['password']
-            room = Room.objects.create(name=name, created_by=request.user, slug=slug, is_private=is_private)
-            if is_private:
-                room.set_password(password)
+            room = Room.objects.create(name=name, created_by=request.user, slug=slug, is_private=is_private, password=password)
+            if room.is_private:
+                room.set_password()
             room.save()
             return redirect('room_detail', room_slug=slug)
         return render(request, 'create_room.html', {'form': form})
@@ -124,8 +125,8 @@ def delete_track(request, **kwargs):
 @require_POST
 @login_required
 @is_staff_or_creator('room')
-def delete_room(request, **kwargs):
-    room = kwargs.get('room')
+def delete_room(request, **kwargs) -> HttpResponseRedirect:
+    room: Room = kwargs.get('room')
     for room_track in RoomTrack.objects.filter(room=room):
         track = room_track.track
         if RoomTrack.objects.filter(track=track).count() <= 1:
@@ -136,9 +137,10 @@ def delete_room(request, **kwargs):
     return redirect('rooms_list')
 
 @login_required
-def unlock_room(request, room_slug):
+def unlock_room(request: WSGIRequest, room_slug: str) -> HttpResponsePermanentRedirect | None:
     if request.method == 'POST':
         password = request.POST.get('password')
+        if not password: return None
         room = get_object_or_404(Room, slug=room_slug)
         if room.check_password(password):
             request.session[f'room_unlocked_{room.id}'] = True

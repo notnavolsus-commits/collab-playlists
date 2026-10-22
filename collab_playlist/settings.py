@@ -31,6 +31,32 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+LOGGING_CONFIG = 'logging.config.dictConfig'
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'new_formatter': {
+            'format': {
+            },
+            'style': '{'
+        }
+    },
+    'handlers': {
+        'handler_console': {
+            'class': 'logging.StreamHandler',
+            'level': 'DEBUG',
+            'formatter': 'new_formatter',
+            'stream': 'ext://sys.stderr',
+        }
+    },
+    'loggers': {
+        '': {
+            'handlers': ['handler_console'],
+            'level': 'DEBUG',
+        }
+    },
+}
 
 # Application definition
 
@@ -140,7 +166,8 @@ CHANNEL_LAYERS = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-DEFAULT_AVATAR_URL = f'{MEDIA_ROOT}/avatars/default.png'
+DEFAULT_AVATAR_URL_REL = f'{MEDIA_URL}avatars/default.png'
+DEFAULT_AVATAR_URL_ABS = f'{MEDIA_ROOT}/avatars/default.png'
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 

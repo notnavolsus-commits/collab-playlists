@@ -16,7 +16,7 @@ def custom_validate_password(password):
         raise ValidationError('Пароль должен содержать хотя бы один специальный символ (!@#$%^&* и т.д.).')
 
 class RoomForm(forms.Form):
-    name = forms.CharField(max_length=30, label='Имя комнаты: ')
+    name = forms.CharField(max_length=30, label='Имя комнаты: ', strip=True)
     is_private = forms.BooleanField(required=False, label='Приватная/Общая ')
     password = forms.CharField(max_length=128, min_length=8, required=False, widget=forms.PasswordInput, validators=[custom_validate_password], label='Пароль ')
 

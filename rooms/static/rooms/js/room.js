@@ -76,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
         RESUME_BROADCAST: WS_MESSAGE_TYPE.RESUME_BROADCAST,
         CHAT_MESSAGE: WS_MESSAGE_TYPE.CHAT_MESSAGE,
         VOTE: 'vote',
+        PING: 'ping',
     }
 
     const messageHandlers = {
@@ -110,11 +111,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
         [WS_MESSAGE_TYPE.STOP_BROADCAST]: (data) => {
-            document.querySelectorAll('div.track-container > audio').forEach(trackPlayer => {
+            let trackPlayer = document.querySelector(`div.track-container[data-track-id=${currentBroadcastTrackId}] > audio`)
+            if (trackPlayer) {
                 trackPlayer.pause();
                 trackPlayer.currentTime = 0;
                 if (broadcastStatusPar) broadcastStatusPar.style.display = 'none';
-            });
+            }
 
             if (isCreator) {
                 isBroadcasting = false;
@@ -130,8 +132,11 @@ document.addEventListener('DOMContentLoaded', function () {
         [WS_MESSAGE_TYPE.CHAT_MESSAGE]: (data) => {
             if (chatMessages) {
                 const msgDiv = document.createElement('div');
-                msgDiv.innerHTML = `<img src="${data.avatar_url}" alt="Avatar" class="avatar-small" onerror="this.src='/media/avatars/default.png'">
-                                    <strong>${data.username}:</strong> ${data.message}`;
+                msgDiv.innerHTML = `<img src="${data.avatar_url}" alt="Avatar" class="avatar-small" onerror="this.src='/media/avatars/default.png'">`;
+                let msgUsernameStrong = document.createElement("strong");
+                msgUsernameStrong.innerText = `${data.username}: `;
+                msgDiv.appendChild(msgUsernameStrong);
+                msgDiv.insertAdjacentText('beforeend', data.message);
                 chatMessages.appendChild(msgDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }

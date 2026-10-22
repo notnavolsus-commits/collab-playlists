@@ -1,5 +1,6 @@
 from django import forms
 from PIL import Image
+from mutagen.mp3 import MP3
 
 from rooms.models import RoomTrack
 from .models import Track
@@ -25,8 +26,8 @@ class TrackForm(forms.Form):
         widget=forms.Select(attrs={'style': 'trackform-track-select'})
     )
 
-    title = forms.CharField(label='Название', max_length=200, required=False)
-    artist = forms.CharField(label='Исполнитель', max_length=200, required=False)
+    title = forms.CharField(label='Название', max_length=200, required=False, strip=True)
+    artist = forms.CharField(label='Исполнитель', max_length=200, required=False, strip=True)
     audio_file = forms.FileField(required=False)
     cover_url = forms.URLField(label='Ссылка на обложку', required=False)
     cover_image = forms.ImageField(label='Файл обложки', required=False)
@@ -57,6 +58,8 @@ class TrackForm(forms.Form):
         max_size = 15 * 1024 * 1024
         if audio_file.size > max_size:
             raise forms.ValidationError(f"Файл должен быть не больше: {max_size / (1024 * 1024)} MB")
+        if MP3(audio_file).info.length > 3600:
+            raise forms.ValidationError(f"Продолжительность аудио файла не может быть больше часа")
         return audio_file
 
     @staticmethod
@@ -98,7 +101,6 @@ class TrackForm(forms.Form):
         else:
             title = cleaned_data.get('title')
             artist = cleaned_data.get('artist')
-            audio_file = cleaned_data.get('audio_file')
             errors = []
             if not title:
                 errors.append('название')
@@ -112,5 +114,3 @@ class TrackForm(forms.Form):
             if cover_image:
                 self.validate_cover_image(cover_image)
         return cleaned_data
-
-
